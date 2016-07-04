@@ -534,8 +534,7 @@ static size_t lzvn_encode_partial(void *__restrict dst, size_t dst_size,
                                   const void *__restrict src, size_t src_size,
                                   size_t *src_used, void *__restrict work) {
   // Min size checks to avoid accessing memory outside buffers.
-  if (dst_size < LZVN_ENCODE_MIN_DST_SIZE ||
-      src_size < LZVN_ENCODE_MIN_SRC_SIZE) {
+  if (dst_size < LZVN_ENCODE_MIN_DST_SIZE) {
     *src_used = 0;
     return 0;
   }
@@ -553,18 +552,26 @@ static size_t lzvn_encode_partial(void *__restrict dst, size_t dst_size,
   state.src_end = (lzvn_offset)src_size;
   state.src_literal = 0;
   state.src_current = 0;
-  state.src_current_end = (lzvn_offset)src_size - LZVN_ENCODE_MIN_MARGIN;
   state.dst = dst;
   state.dst_begin = dst;
-  state.dst_end = dst + dst_size - 1; // allow 1 byte for end-of-stream
+  state.dst_end = dst + dst_size - 8; // reserve 8 bytes for end-of-stream
   state.table = work;
 
-  lzvn_init_table(&state);
+  // Do not encode if the input buffer is too small. We'll emit a literal instead.
+  if (src_size >= LZVN_ENCODE_MIN_SRC_SIZE) {
 
-  lzvn_encode(&state);
+    state.src_current_end = (lzvn_offset)src_size - LZVN_ENCODE_MIN_MARGIN;
+    lzvn_init_table(&state);
+    lzvn_encode(&state);
+
+  }
+
+  // No need to test the return value: src_literal will not be updated on failure,
+  // and we will fail later.
   lzvn_emit_literal(&state, state.src_end - state.src_literal);
-  state.dst_end =
-      dst + dst_size; // restore final byte, so end-of-stream always succeeds
+
+  // Restore original size, so end-of-stream always succeeds, and emit it
+  state.dst_end = dst + dst_size;
   lzvn_emit_end_of_stream(&state);
 
   *src_used = state.src_literal;
