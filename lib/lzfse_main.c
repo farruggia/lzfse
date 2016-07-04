@@ -21,7 +21,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 // LZFSE command line tool
 
-#include "lzfse.h"
+#include <lzfse.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>

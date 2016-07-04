@@ -21,7 +21,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 // LZFSE encode API
 
-#include "lzfse.h"
+#include <lzfse.h>
 #include "lzfse_internal.h"
 
 size_t lzfse_encode_scratch_size() {
